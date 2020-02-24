@@ -57,7 +57,7 @@ builds/**/images/*
 # Anything under a tmp folder
 **/tmp/*
 
-# Don't include our binary
+# Don't include our binary please
 lenslocked.com
 images/**
 
