@@ -34,9 +34,9 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 }
 
 type SignupForm struct {
-	Name    string `schema:"name"`
-	Email   string `schema:"email"`
-	Passwod string `schema:"password"`
+	Name     string `schema:"name"`
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
 }
 
 //Create  is used to process the signup form when a user
@@ -50,12 +50,13 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := models.User{
-		Name:  form.Name,
-		Email: form.Email,
+		Name:     form.Name,
+		Email:    form.Email,
+		Password: form.Password,
 	}
 	if err := u.us.Create(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(w, form)
+	fmt.Fprintln(w, user)
 }
