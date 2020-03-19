@@ -27,6 +27,19 @@ var (
 const userPwPepper = "secret-random-string"
 const hmacSecretKey = "secret-hmac-key"
 
+// User represents the user model stored in our database
+// This is used for user accounts
+// Storing both an email address and a password so users can log in and gain access to their content
+type User struct {
+	gorm.Model
+	Name         string
+	Email        string `gorm:"not null;unique_index"`
+	Password     string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"-"`
+	RememberHash string `gorm:"not null;unique_index"`
+}
+
 // UserDB is sued to interact with the users database
 //
 //For pretty much all single user quieries:
@@ -53,25 +66,63 @@ type UserDB interface {
 	DestructiveReset() error
 }
 
-func NewUserService(connectionInfo string) (*UserService, error) {
+// UserService is a set of methods used to manipulate and work with the user model
+type UserService interface {
+	// Authenticate will verify the provided email address and password are correct
+	// If they are correct, the user corresponding to that email will be returned
+	// Otherwise you will receive:
+	// ErrNotFound, ErrInvalidPassword, or another error if something goes wrong
+	Authenticate(email, password string) (*User, error)
+	UserDB
+}
+
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	return &UserService{
+	return &userService{
 		UserDB: &userValidator{
 			UserDB: ug,
 		},
 	}, nil
 }
 
-type UserService struct {
+type userService struct {
 	UserDB
 }
 
-type userValidator strict {
+// Authenticate can be used to authenticate user with the provided email adrress and password
+// If the email address provided is invalid, this will return nil, ErrNotFound
+// If the password provided is invalid, this will return nil, ErrInvalid Passord
+// If the email and password are both valid, this will return user,nil
+// otherwise is another errir is encountered , this will return nil,err
+func (us *userService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
+
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		case nil:
+		default:
+			return nil, err
+		}
+	}
+	return foundUser, nil
+}
+
+var _ UserDB = &userValidator{}
+
+type userValidator struct {
 	UserDB
 }
+
+var _ UserDB = &userGorm{}
 
 func newUserGorm(connectionInfo string) (*userGorm, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
@@ -85,8 +136,6 @@ func newUserGorm(connectionInfo string) (*userGorm, error) {
 		hmac: hmac,
 	}, nil
 }
-
-var _ UserDB = &userGorm{}
 
 type userGorm struct {
 	db   *gorm.DB
@@ -124,41 +173,6 @@ func (ug *userGorm) ByRemember(token string) (*User, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-// Authenticate can be used to authenticate user with the provided email adrress and password
-// If the email address provided is invalid, this will return nil, ErrNotFound
-// If the password provided is invalid, this will return nil, ErrInvalid Passord
-// If the email and password are both valid, this will return user,nil
-// otherwise is another errir is encountered , this will return nil,err
-func (us *UserService) Authenticate(email, password string) (*User, error) {
-	foundUser, err := us.ByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
-
-	if err != nil {
-		switch err {
-		case bcrypt.ErrMismatchedHashAndPassword:
-			return nil, ErrInvalidPassword
-		case nil:
-		default:
-			return nil, err
-		}
-	}
-	return foundUser, nil
-}
-
-//first will query using the provided gorm.DB ad it will
-// get the first item returned and place it into dst.
-// If nothing is returned in the query, it will return ErrNotFound
-func first(db *gorm.DB, dst interface{}) error {
-	err := db.First(dst).Error
-	if err == gorm.ErrRecordNotFound {
-		return ErrNotFound
-	}
-	return err
 }
 
 // Create will create the provided user and backfill data
@@ -221,12 +235,13 @@ func (ug *userGorm) AutoMigrate() error {
 	return nil
 }
 
-type User struct {
-	gorm.Model
-	Name         string
-	Email        string `gorm:"not null;unique_index"`
-	Password     string `gorm:"-"`
-	PasswordHash string `gorm:"not null"`
-	Remember     string `gorm:"-"`
-	RememberHash string `gorm:"not null;unique_index"`
+//first will query using the provided gorm.DB ad it will
+// get the first item returned and place it into dst.
+// If nothing is returned in the query, it will return ErrNotFound
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
+	if err == gorm.ErrRecordNotFound {
+		return ErrNotFound
+	}
+	return err
 }
