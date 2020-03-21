@@ -121,9 +121,9 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 
 type userValFunc func(*User) error
 
-func runUserValFuncs(user *User, fns ...userValFunc) error{
-	for _, fn := range fns{
-		if err:= fn(user); err != nil{
+func runUserValFuncs(user *User, fns ...userValFunc) error {
+	for _, fn := range fns {
+		if err := fn(user); err != nil {
 			return err
 		}
 	}
@@ -141,35 +141,27 @@ type userValidator struct {
 // ByRemember on the subsequent UserDB layer
 func (uv *userValidator) ByRemember(token string) (*User, error) {
 	user := User{
-		Remember:token,
+		Remember: token,
 	}
-	if err := runUserValFuncs(&user, uv.hmacRemember); err != nil{
-		return nil,err
+	if err := runUserValFuncs(&user, uv.hmacRemember); err != nil {
+		return nil, err
 	}
 	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
 // Create will create the provided user and backfill data like the ID, CreatedAt, and UpdatedAt fields
 func (uv *userValidator) Create(user *User) error {
-	if user.Remember= "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-	}
-	
-	err := runUserValFuncs(user,uv.bcryptPassword,uv.hmacRemember)
-	if err != nil{
+	err := runUserValFuncs(user, uv.bcryptPassword, uv.setRememberIfUnset, uv.hmacRemember)
+	if err != nil {
 		return err
 	}
-		return uv.UserDB.Create(user)
+	return uv.UserDB.Create(user)
 }
 
 // Update will hash a remember token if it is provided
 func (uv *userValidator) Update(user *User) error {
-	err := runUserValFuncs(user,uv.bcryptPassword,uv.hmacRemember)
-	if err != nil{
+	err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember)
+	if err != nil {
 		return err
 	}
 	return uv.UserDB.Update(user)
@@ -183,10 +175,10 @@ func (uv *userValidator) Delete(id uint) error {
 	return uv.UserDB.Delete(id)
 }
 
-/// bcryptPassword will hash a user's password with a predefined pepper (userPwPepper) 
+/// bcryptPassword will hash a user's password with a predefined pepper (userPwPepper)
 // and bcrypt if the password field is not the empty string
-func (uv *userValidator) bcryptPassword(user *User) error{
-	if user.Password == ""{
+func (uv *userValidator) bcryptPassword(user *User) error {
+	if user.Password == "" {
 		return nil
 	}
 	pwBytes := []byte(user.Password + userPwPepper)
@@ -200,11 +192,24 @@ func (uv *userValidator) bcryptPassword(user *User) error{
 	return nil
 }
 
-func (uv *userValidator) hmacRemember (user *User) error{
-	if user.Remember ==""{
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
 		return nil
 	}
 	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
+}
+
+func (uv *userValidator) setRememberIfUnset(user *User) error {
+	if user.Remember != "" {
+		return nil
+	}
+
+	token, err := rand.RememberToken()
+	if err != nil {
+		return err
+	}
+	user.Remember = token
 	return nil
 }
 
@@ -264,7 +269,7 @@ func (ug *userGorm) ByRemember(rememberHash string) (*User, error) {
 }
 
 // Create will create the provided user and backfill data like the ID, CreatedAt, and UpdatedAt fields
-func (ug *userGorm) Create(user *User) error{
+func (ug *userGorm) Create(user *User) error {
 	return ug.db.Create(user).Error
 }
 
