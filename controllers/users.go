@@ -31,7 +31,23 @@ type Users struct {
 }
 
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	if err := u.NewView.Render(w, nil); err != nil {
+	type Alert struct {
+		Level   string
+		Message string
+	}
+	type Data struct {
+		Alert Alert
+		Yield interface{}
+	}
+	a := Alert{
+		Level:   "warning",
+		Message: "Succesfully rendered a dynamic alert",
+	}
+	d := Data{
+		Alert: a,
+		Yield: "hello!",
+	}
+	if err := u.NewView.Render(w, d); err != nil {
 		panic(err)
 	}
 }
@@ -83,7 +99,6 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}
-
 	user, err := u.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		switch err {
