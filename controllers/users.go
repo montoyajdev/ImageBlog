@@ -31,21 +31,11 @@ type Users struct {
 }
 
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	type Alert struct {
-		Level   string
-		Message string
-	}
-	type Data struct {
-		Alert Alert
-		Yield interface{}
-	}
-	a := Alert{
-		Level:   "warning",
-		Message: "Succesfully rendered a dynamic alert",
-	}
-	d := Data{
-		Alert: a,
-		Yield: "hello!",
+	d := views.Data{
+		Alert: &views.Alert{
+			Level:   views.AlertLvlError,
+			Message: "something went wrong",
+		},
 	}
 	if err := u.NewView.Render(w, d); err != nil {
 		panic(err)
