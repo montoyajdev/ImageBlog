@@ -2,8 +2,8 @@ package views
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 )
@@ -38,11 +38,10 @@ type View struct {
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	v.Render(w, nil)
-	}
 }
 
 // render is used to render the view with predefined layout
-func (v *View) Render(w http.ResponseWriter, data interface{})  {
+func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "text/html")
 	switch data.(type) {
 	case Data:
@@ -52,12 +51,12 @@ func (v *View) Render(w http.ResponseWriter, data interface{})  {
 			Yield: data,
 		}
 	}
-	var buf *bytes.Buffer
+	var buf bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buf, v.Layout, data); err != nil {
 		http.Error(w, "Something went wrong.  If the problem persists, please email support @lenslocked.com", http.StatusInternalServerError)
 		return
 	}
-	io.Copy(w,&buf)
+	io.Copy(w, &buf)
 }
 
 // layout files returns a slice of strings representing
