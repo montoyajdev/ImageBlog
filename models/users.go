@@ -66,6 +66,8 @@ func NewUserService(db *gorm.DB) UserService {
 	}
 }
 
+var _ UserService = &userService{}
+
 type userService struct {
 	UserDB
 }
