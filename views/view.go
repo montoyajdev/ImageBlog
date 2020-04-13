@@ -2,6 +2,7 @@ package views
 
 import (
 	"bytes"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -57,6 +58,7 @@ func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) 
 	vd.User = context.User(r.Context())
 	var buf bytes.Buffer
 	if err := v.Template.ExecuteTemplate(&buf, v.Layout, vd); err != nil {
+		fmt.Println(err)
 		http.Error(w, "Something went wrong.  If the problem persists, please email support @lenslocked.com", http.StatusInternalServerError)
 		return
 	}
