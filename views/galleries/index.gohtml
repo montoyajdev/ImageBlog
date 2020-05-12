@@ -1,37 +1,37 @@
 {{define "yield"}}
 <div class="row">
   <div class="col-md-12">
-  <table class="table table-hover">
-    <thead>
+    <table class="table table-hover">
+      <thead>
         <tr>
-            <th>#</th>
-            <th>title</th>
-            <th>View</th>
-            <th>Edit</th>
+          <th>ID</th>
+          <th>Title</th>
+          <th>View</th>
+          <th>Edit</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {{range .}}
         <tr>
-            <th scope="row">{{.ID}}</th>
-            <td>{{.Title}}</td>
-            <td>
-                <a href="/galleries/{{.ID}}">
-                    View
-                </a>
-            </td>
-            <td>
-                <a href="/galleries/{{.ID}}/edit">
-                    Edit
-                </a>
-            </td>
+          <th scope="row">{{.ID}}</th>
+          <td>{{.Title}}</td>
+          <td>
+            <a href="/galleries/{{.ID}}">
+              View
+            </a>
+          </td>
+          <td>
+            <a href="/galleries/{{.ID}}/edit">
+              Edit
+            </a>
+          </td>
         </tr>
         {{end}}
-    </tbody>
+      </tbody>
     </table>
     <a href="/galleries/new" class="btn btn-primary">
-        New Gallery
+      New Gallery
     </a>
-</div>
+  </div>
 </div>
 {{end}}

@@ -3,24 +3,42 @@ package models
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
+// Image is NOT stored in the database
+type Image struct {
+	GalleryID uint
+	Filename  string
+}
+
+func (i *Image) Path() string {
+	temp := url.URL{
+		Path: "/" + i.RelativePath(),
+	}
+	return temp.String()
+}
+
+func (i *Image) RelativePath() string {
+	return fmt.Sprintf("images/galleries/%v/%v", i.GalleryID, i.Filename)
+}
+
 type ImageService interface {
-	Create(galleryID uint, r io.ReadCloser, filename string) error
-	ByGalleryID(galleryID uint) ([]string, error)
+	Create(galleryID uint, r io.Reader, filename string) error
+	ByGalleryID(galleryID uint) ([]Image, error)
+	Delete(i *Image) error
 }
 
 func NewImageService() ImageService {
 	return &imageService{}
 }
 
-type imageService struct {
-	GalleryDB
-}
+type imageService struct{}
 
-func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string) error {
+func (is *imageService) Create(galleryID uint, r io.Reader, filename string) error {
 	path, err := is.mkImagePath(galleryID)
 	if err != nil {
 		return err
@@ -39,13 +57,25 @@ func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string)
 	return nil
 }
 
-func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
+func (is *imageService) ByGalleryID(galleryID uint) ([]Image, error) {
 	path := is.imagePath(galleryID)
-	strings, err := filepath.Glob(path + "*")
+	imgStrings, err := filepath.Glob(path + "*")
 	if err != nil {
 		return nil, err
 	}
-	return strings, nil
+	ret := make([]Image, len(imgStrings))
+	for i := range imgStrings {
+		imgStrings[i] = strings.Replace(imgStrings[i], path, "", 1)
+		ret[i] = Image{
+			Filename:  imgStrings[i],
+			GalleryID: galleryID,
+		}
+	}
+	return ret, nil
+}
+
+func (is *imageService) Delete(i *Image) error {
+	return os.Remove(i.RelativePath())
 }
 
 func (is *imageService) imagePath(galleryID uint) string {
