@@ -17,7 +17,7 @@
       Images
     </label>
   </div>
-  <div class="col-md-10">
+  <div class="col-md-10 img-fluid">
     {{template "galleryImages" .}}
   </div>
 </div>
@@ -79,7 +79,7 @@
     <div class="col-md-2">
       {{range .}}
         <a href="{{.Path}}">
-          <img src="{{.Path}}" class="thumbnail">
+          <img src="{{.Path}}" class="thumbnail img-thumbnai">
         </a>
         {{template "deleteImageForm" .}}
       {{end}}
@@ -93,3 +93,11 @@
   <button type="submit" class="btn btn-default">Delete</button>
 </form>
 {{end}}
+
+<style>
+.thumbnail {
+  width: 100%;
+  margin-bottom: 6px;
+}
+</style>
+
