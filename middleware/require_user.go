@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"lenslocked.com/context"
 	"lenslocked.com/models"
@@ -17,6 +18,15 @@ func (mw *User) Apply(next http.Handler) http.HandlerFunc {
 
 func (mw *User) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		// If the user is requesting a static asset or image
+		// we will not need to lookup the current user so we skip
+		// doing that.
+		if strings.HasPrefix(path, "/assets/") ||
+			strings.HasPrefix(path, "/images/") {
+			next(w, r)
+			return
+		}
 		cookie, err := r.Cookie("remember_token")
 		if err != nil {
 			next(w, r)
@@ -34,17 +44,20 @@ func (mw *User) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-// RequireUser assumes that User middleware has already been run otherwise it will not work correctly
+// RequireUser assumes that User middleware has already been run
+// otherwise it will no work correctly.
 type RequireUser struct {
 	User
 }
 
-// Apply assumes the User middleware has already been run otherwise it will not work correctly
+// Apply assumes that User middleware has already been run
+// otherwise it will no work correctly.
 func (mw *RequireUser) Apply(next http.Handler) http.HandlerFunc {
 	return mw.ApplyFn(next.ServeHTTP)
 }
 
-// ApplyFn assumes the User middleware has already been run otherwise it will not work correctly
+// ApplyFn assumes that User middleware has already been run
+// otherwise it will no work correctly.
 func (mw *RequireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := context.User(r.Context())
