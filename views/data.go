@@ -1,6 +1,7 @@
 package views
 
 import (
+	"html/template"
 	"log"
 
 	"lenslocked.com/models"
@@ -25,6 +26,7 @@ type Alert struct {
 type Data struct {
 	Alert *Alert
 	User  *models.User
+	CSRF  template.HTML
 	Yield interface{}
 }
 
