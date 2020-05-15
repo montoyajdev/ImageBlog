@@ -27,8 +27,8 @@ func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
 		Host:     "localhost",
 		Port:     5432,
-		User:     "jon",
-		Password: "your-password",
+		User:     "janesmith",
+		Password: "1234",
 		Name:     "lenslocked_dev",
 	}
 }
@@ -39,7 +39,6 @@ type Config struct {
 	Pepper   string         `json:"pepper"`
 	HMACKey  string         `json:"hmac_key"`
 	Database PostgresConfig `json:"database"`
-	Mailgun  MailgunConfig  `json:"mailgun"`
 }
 
 func (c Config) IsProd() bool {
