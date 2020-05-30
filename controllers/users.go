@@ -42,14 +42,15 @@ type SignupForm struct {
 	Password string `schema:"password"`
 }
 
-//Create  is used to process the signup form when a user
-// submits it. This is used to create a newuser account
-//POST/signup
+// Create is used to process the signup form when a user
+// submits it. This is used to create a new user account.
+//
+// POST /signup
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	var vd views.Data
 	var form SignupForm
+	vd.Yield = &form
 	if err := parseForm(r, &form); err != nil {
-		log.Println(err)
 		vd.SetAlert(err)
 		u.NewView.Render(w, r, vd)
 		return
@@ -69,7 +70,12 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/galleries", http.StatusFound)
+
+	alert := views.Alert{
+		Level:   views.AlertLvlSuccess,
+		Message: "Welcome to LensLocked.com!",
+	}
+	views.RedirectAlert(w, r, "/galleries", http.StatusFound, alert)
 }
 
 type LoginForm struct {
