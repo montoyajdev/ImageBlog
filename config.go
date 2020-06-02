@@ -65,7 +65,7 @@ type MailgunConfig struct {
 }
 
 func LoadConfig(configReq bool) Config {
-	f, err := os.Open(".config.jscsrc")
+	f, err := os.Open(".gitignore")
 	if err != nil {
 		if configReq {
 			panic(err)

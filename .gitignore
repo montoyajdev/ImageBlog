@@ -1,3 +1,22 @@
+{
+    "port": 3000,
+    "env":"dev",
+    "pepper":"secret-random-string",
+    "hmac_key": "secret-hmac-key",
+    "database":{
+        "host":     "localhost",
+		"port":     5432,
+		"user":     "janesmith",
+		"password": "1234",
+		"name":     "lenslocked_dev"
+    },
+    "mailgun":{
+        "api_key":"ebebd1f65c604abec1d8256af0df9110-a2b91229-d7811fdf",
+        "public_api_key":"pubkey-6ce4f5f41e1ee9630de2dd56033f3fee",
+        "domain":"sandbox92f9fb6ccb32400c954139cca076ef20.mailgun.org"
+    }
+}
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
@@ -65,22 +84,5 @@ images/**
 notes/**
 .vscode/**
 
-{
-    "port": 3000,
-    "env":"dev",
-    "pepper":"secret-random-string",
-    "hmac_key": "secret-hmac-key",
-    "database":{
-        "host":     "localhost",
-		"port":     5432,
-		"user":     "janesmith",
-		"password": "1234",
-		"name":     "lenslocked_dev"
-    },
-    "mailgun":{
-        "api_key":"ebebd1f65c604abec1d8256af0df9110-a2b91229-d7811fdf",
-        "public_api_key":"pubkey-6ce4f5f41e1ee9630de2dd56033f3fee",
-        "domain":"sandbox92f9fb6ccb32400c954139cca076ef20.mailgun.org"
-    }
-}
+
 
